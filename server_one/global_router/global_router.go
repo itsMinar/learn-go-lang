@@ -13,6 +13,7 @@ func GlobalRouter(mux *http.ServeMux) http.Handler {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
+
 		mux.ServeHTTP(w, r)
 	}
 

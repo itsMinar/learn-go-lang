@@ -5,15 +5,16 @@ import (
 	"net/http"
 
 	"my_server/global_router"
-	"my_server/handlers"
+	"my_server/middlewares"
 )
 
 func Serve() {
+	manager := middlewares.NewManager()
+	manager.Use(middlewares.Logger, middlewares.Hudai)
+
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /products", http.HandlerFunc(handlers.GetProducts))
-	mux.Handle("POST /products", http.HandlerFunc(handlers.CreateProduct))
-	mux.Handle("GET /products/{productId}", http.HandlerFunc(handlers.GetProductById))
+	initRoutes(mux, manager)
 
 	globalRouter := global_router.GlobalRouter(mux)
 
