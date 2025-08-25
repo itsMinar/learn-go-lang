@@ -4,22 +4,24 @@ import (
 	"fmt"
 	"net/http"
 
-	"my_server/global_router"
 	"my_server/middlewares"
 )
 
 func Serve() {
 	manager := middlewares.NewManager()
-	manager.Use(middlewares.Logger, middlewares.Hudai)
+	manager.Use(
+		middlewares.Preflight,
+		middlewares.Cors,
+		middlewares.Logger,
+	)
 
 	mux := http.NewServeMux()
+	wrappedMux := manager.WrapMux(mux)
 
 	initRoutes(mux, manager)
 
-	globalRouter := global_router.GlobalRouter(mux)
-
 	fmt.Println("Server is running on port 8000")
-	err := http.ListenAndServe(":8000", globalRouter)
+	err := http.ListenAndServe(":8000", wrappedMux)
 	if err != nil {
 		fmt.Println("Error starting server:", err)
 		return
