@@ -20,8 +20,34 @@ func getNumbers(num1 int, num2 int) (int, int) {
 	return sum, mul
 }
 
+// example of higher order function
+// parameter is function
+// return function
+// both
+func cook(itemName string) {
+	fmt.Println("Cooking", itemName)
+}
+func takeOrder(foodItem string, cb func(string)) { // cb is callback function
+	cb(foodItem)
+}
+
 func main() {
 	fmt.Println("Welcome to Function in Go Lang")
+
+	// IIFE - Immediately Invoked Function Expression
+	// anonymous function
+	func(msg string) {
+		fmt.Println(msg)
+	}("Hi, Minar")
+
+	agun()
+
+	agun := func() {
+		fmt.Println("Valo lage na - another")
+	}
+	agun()
+
+	takeOrder("Pizza", cook)
 
 	result := add(2, 5)
 	fmt.Println(result)
@@ -30,10 +56,10 @@ func main() {
 	fmt.Println(num1, num2)
 
 	// get user name as input
-	var name string
-	fmt.Println("Please enter your name:")
-	fmt.Scanln(&name)
-	fmt.Println("Hello,", name)
+	// var name string
+	// fmt.Println("Please enter your name:")
+	// fmt.Scanln(&name)
+	// fmt.Println("Hello,", name)
 }
 
 /***
