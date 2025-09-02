@@ -14,6 +14,7 @@ func outer() func() {
 
 	show := func() {
 		money = money + a + p
+		fmt.Println("Money is:", money)
 	}
 
 	return show
@@ -27,10 +28,13 @@ func call() {
 	incr2 := outer()
 	incr2()
 	incr2()
+	incr2()
 }
 
 func main() {
 	fmt.Println("Closure in Go lang")
+
+	call()
 }
 
 func init() {
