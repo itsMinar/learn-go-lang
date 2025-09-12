@@ -7,10 +7,28 @@ import (
 	"strconv"
 
 	"my_server/config"
+	"my_server/rest/handlers/product"
+	"my_server/rest/handlers/user"
 	"my_server/rest/middlewares"
 )
 
-func Start(cnf config.Config) {
+type Server struct {
+	// add dependencies
+	cnf            *config.Config
+	productHandler *product.Handler
+	userHandler    *user.Handler
+}
+
+// inject dependencies
+func NewServer(cnf *config.Config, productHandler *product.Handler, userHandler *user.Handler) *Server {
+	return &Server{
+		cnf:            cnf,
+		productHandler: productHandler,
+		userHandler:    userHandler,
+	}
+}
+
+func (server *Server) Start() {
 	manager := middlewares.NewManager()
 	manager.Use(
 		middlewares.Preflight,
@@ -21,9 +39,10 @@ func Start(cnf config.Config) {
 	mux := http.NewServeMux()
 	wrappedMux := manager.WrapMux(mux)
 
-	initRoutes(mux, manager)
+	server.productHandler.RegisterRoutes(mux, manager)
+	server.userHandler.RegisterRoutes(mux, manager)
 
-	addr := ":" + strconv.Itoa(cnf.HttpPort)
+	addr := ":" + strconv.Itoa(server.cnf.HttpPort)
 	fmt.Println("Server is running on port", addr)
 	err := http.ListenAndServe(addr, wrappedMux)
 	if err != nil {

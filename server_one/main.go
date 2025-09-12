@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"my_server/utils"
-)
+import "my_server/cmd"
 
 func DemoEnc() {
 	// var s string
@@ -39,17 +36,5 @@ func DemoEnc() {
 }
 
 func main() {
-	// cmd.Serve()
-	jwt, err := utils.CreateJwt("my-secret", utils.Payload{
-		Sub:         13,
-		FirstName:   "Minar",
-		LastName:    "Munshi",
-		Email:       "minarmunshi@mail.com",
-		IsShopOwner: true,
-	})
-	if err != nil {
-		fmt.Println("err=>", err)
-		return
-	}
-	fmt.Println("jwt=>", jwt)
+	cmd.Serve()
 }

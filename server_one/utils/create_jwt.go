@@ -20,10 +20,6 @@ type Payload struct {
 	IsShopOwner bool   `json:"is_shop_owner"`
 }
 
-type Signature struct {
-	Signature string `json:"signature"`
-}
-
 func CreateJwt(secret string, data Payload) (string, error) {
 	header := Header{
 		Alg: "HS256",
