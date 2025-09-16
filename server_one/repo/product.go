@@ -1,6 +1,4 @@
-package database
-
-var productList []Product
+package repo
 
 type Product struct {
 	ID          int     `json:"id"`
@@ -10,47 +8,67 @@ type Product struct {
 	ImgURL      string  `json:"imgUrl"`
 }
 
-func Store(p Product) Product {
-	p.ID = len(productList) + 1
-	productList = append(productList, p)
-	return p
+type ProductRepo interface {
+	Create(p Product) (*Product, error)
+	Get(productId int) (*Product, error)
+	List() ([]*Product, error)
+	Delete(productId int) error
+	Update(p Product) (*Product, error)
 }
 
-func List() []Product {
-	return productList
+type productRepo struct {
+	productList []*Product
 }
 
-func GetSingle(productId int) *Product {
-	for _, product := range productList {
+// constructor or constructor function
+func NewProductRepo() ProductRepo {
+	repo := &productRepo{}
+
+	generateInitialProducts(repo)
+	return repo
+}
+
+func (r *productRepo) Create(p Product) (*Product, error) {
+	p.ID = len(r.productList) + 1
+	r.productList = append(r.productList, &p)
+	return &p, nil
+}
+func (r *productRepo) Get(productId int) (*Product, error) {
+	for _, product := range r.productList {
 		if product.ID == productId {
-			return &product
+			return product, nil
 		}
 	}
 
-	return nil
+	return nil, nil
 }
-
-func Update(product Product) {
-	for i, p := range productList {
-		if p.ID == product.ID {
-			productList[i] = product
-		}
-	}
+func (r *productRepo) List() ([]*Product, error) {
+	return r.productList, nil
 }
+func (r *productRepo) Delete(productId int) error {
+	var tempList []*Product
 
-func Delete(productId int) {
-	var tempList []Product
-
-	for _, p := range productList {
+	for _, p := range r.productList {
 		if p.ID != productId {
 			tempList = append(tempList, p)
 		}
 	}
 
-	productList = tempList
+	r.productList = tempList
+
+	return nil
+}
+func (r *productRepo) Update(product Product) (*Product, error) {
+	for i, p := range r.productList {
+		if p.ID == product.ID {
+			r.productList[i] = &product
+		}
+	}
+
+	return &product, nil
 }
 
-func init() {
+func generateInitialProducts(r *productRepo) {
 	product1 := Product{
 		ID:          1,
 		Title:       "Wireless Headphones",
@@ -91,5 +109,5 @@ func init() {
 		ImgURL:      "https://example.com/images/monitor.jpg",
 	}
 
-	productList = append(productList, product1, product2, product3, product4, product5)
+	r.productList = append(r.productList, &product1, &product2, &product3, &product4, &product5)
 }

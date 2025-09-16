@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"my_server/database"
 	"my_server/utils"
 )
 
@@ -13,11 +12,15 @@ func (h *Handler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(productID)
 	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+		utils.SendError(w, http.StatusBadRequest, "Invalid product ID")
 		return
 	}
 
-	database.Delete(id)
+	err = h.productRepo.Delete(id)
+	if err != nil {
+		utils.SendError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
 
-	utils.SendData(w, "Successfully Deleted Product", http.StatusOK)
+	utils.SendData(w, http.StatusOK, "Successfully Deleted Product")
 }

@@ -5,30 +5,46 @@ import (
 	"net/http"
 	"strconv"
 
-	"my_server/database"
+	"my_server/repo"
 	"my_server/utils"
 )
+
+type ReqUpdateProduct struct {
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	ImgURL      string  `json:"imgUrl"`
+}
 
 func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	productID := r.PathValue("id")
 
 	id, err := strconv.Atoi(productID)
 	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+		utils.SendError(w, http.StatusBadRequest, "Invalid product ID")
 		return
 	}
 
-	var newProduct database.Product
+	var req ReqUpdateProduct
 	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(&newProduct)
+	err = decoder.Decode(&req)
 	if err != nil {
-		http.Error(w, "Invalid product data", http.StatusBadRequest)
+		utils.SendError(w, http.StatusBadRequest, "Invalid product data")
 		return
 	}
 
-	newProduct.ID = id
+	updatedProduct, err := h.productRepo.Update(repo.Product{
+		ID:          id,
+		Title:       req.Title,
+		Description: req.Description,
+		Price:       req.Price,
+		ImgURL:      req.ImgURL,
+	})
 
-	database.Update(newProduct)
+	if err != nil {
+		utils.SendError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
 
-	utils.SendData(w, "Successfully Updated Product", http.StatusCreated)
+	utils.SendData(w, http.StatusOK, updatedProduct)
 }

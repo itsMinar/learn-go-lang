@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"my_server/config"
-	"my_server/database"
 	"my_server/utils"
 )
 
@@ -15,23 +13,25 @@ type RequestLogin struct {
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	var reqLogin database.User
+	var req RequestLogin
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&reqLogin)
+	err := decoder.Decode(&req)
 	if err != nil {
-		http.Error(w, "Invalid Request data", http.StatusBadRequest)
+		utils.SendError(w, http.StatusBadRequest, "Invalid Request data")
 		return
 	}
 
-	usr := database.Find(reqLogin.Email, reqLogin.Password)
+	usr, err := h.userRepo.Find(req.Email, req.Password)
+	if err != nil {
+		utils.SendError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
 	if usr == nil {
-		http.Error(w, "Invalid credentials", http.StatusBadRequest)
+		utils.SendError(w, http.StatusBadRequest, "Invalid credentials")
 		return
 	}
 
-	cnf := config.GetConfig()
-
-	accessToken, err := utils.CreateJwt(cnf.JwtSecretKey, utils.Payload{
+	accessToken, err := utils.CreateJwt(h.cnf.JwtSecretKey, utils.Payload{
 		Sub:         usr.ID,
 		FirstName:   usr.FirstName,
 		LastName:    usr.LastName,
@@ -40,9 +40,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		utils.SendError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
-	utils.SendData(w, accessToken, http.StatusOK)
+	utils.SendData(w, http.StatusOK, accessToken)
 }
