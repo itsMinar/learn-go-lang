@@ -38,5 +38,5 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.SendData(w, http.StatusCreated, createdUser.ID)
+	utils.SendData(w, http.StatusCreated, createdUser)
 }

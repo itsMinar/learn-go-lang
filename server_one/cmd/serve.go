@@ -1,19 +1,28 @@
 package cmd
 
 import (
+	"fmt"
 	"my_server/config"
+	"my_server/infra/db"
 	"my_server/repo"
 	"my_server/rest"
 	"my_server/rest/handlers/product"
 	"my_server/rest/handlers/user"
 	"my_server/rest/middlewares"
+	"os"
 )
 
 func Serve() {
 	cnf := config.GetConfig()
 
-	productRepo := repo.NewProductRepo()
-	userRepo := repo.NewUserRepo()
+	dbCon, err := db.NewConnection()
+	if err != nil {
+		fmt.Println("Failed to connect to database: ", err)
+		os.Exit(1)
+	}
+
+	productRepo := repo.NewProductRepo(dbCon)
+	userRepo := repo.NewUserRepo(dbCon)
 
 	middlewares := middlewares.NewMiddlewares(cnf)
 
