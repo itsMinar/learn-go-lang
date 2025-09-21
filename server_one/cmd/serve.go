@@ -15,9 +15,15 @@ import (
 func Serve() {
 	cnf := config.GetConfig()
 
-	dbCon, err := db.NewConnection()
+	dbCon, err := db.NewConnection(cnf.DB)
 	if err != nil {
 		fmt.Println("Failed to connect to database: ", err)
+		os.Exit(1)
+	}
+
+	err = db.Migrate(dbCon, "./migrations")
+	if err != nil {
+		fmt.Println("Failed to migrate database: ", err)
 		os.Exit(1)
 	}
 

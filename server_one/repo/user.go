@@ -19,10 +19,10 @@ type User struct {
 type UserRepo interface {
 	Create(user User) (*User, error)
 	Find(email, password string) (*User, error)
-	// Get(userId int) (*User, error)
-	// List() ([]*User, error)
-	// Delete(userId int) error
-	// Update(user User) (*User, error)
+	Get(userId int) (*User, error)
+	List() ([]*User, error)
+	Delete(userId int) error
+	Update(user User) (*User, error)
 }
 
 type userRepo struct {
@@ -88,38 +88,62 @@ func (r *userRepo) Find(email, password string) (*User, error) {
 	return &user, nil
 }
 
-// func (r *userRepo) Get(userId int) (*User, error) {
-// 	for _, user := range r.users {
-// 		if user.ID == userId {
-// 			return user, nil
-// 		}
-// 	}
+func (r *userRepo) Get(userId int) (*User, error) {
+	query := `SELECT id, first_name, last_name, email, password, is_shop_owner 
+	FROM users 
+	WHERE id = $1 
+	LIMIT 1`
 
-//		return nil, nil
-//	}
+	var user User
+	err := r.db.Get(&user, query, userId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
 
-// func (r *userRepo) List() ([]*User, error) {
-// 	return r.users, nil
-// }
-// func (r *userRepo) Delete(userId int) error {
-// 	var tempList []*User
+	return &user, nil
+}
 
-// 	for _, p := range r.users {
-// 		if p.ID != userId {
-// 			tempList = append(tempList, p)
-// 		}
-// 	}
+func (r *userRepo) List() ([]*User, error) {
+	query := `SELECT id, first_name, last_name, email, password, is_shop_owner 
+	FROM users`
 
-// 	r.users = tempList
+	var users []*User
+	err := r.db.Select(&users, query)
+	if err != nil {
+		log.Printf("Failed to list users: %v", err)
+		return nil, err
+	}
 
-// 	return nil
-// }
-// func (r *userRepo) Update(user User) (*User, error) {
-// 	for i, p := range r.users {
-// 		if p.ID == user.ID {
-// 			r.users[i] = &user
-// 		}
-// 	}
+	return users, nil
+}
+func (r *userRepo) Delete(userId int) error {
+	query := `DELETE FROM users WHERE id = $1`
 
-// 	return &user, nil
-// }
+	_, err := r.db.Exec(query, userId)
+	if err != nil {
+		log.Printf("Failed to delete user: %v", err)
+		return err
+	}
+
+	return nil
+}
+func (r *userRepo) Update(user User) (*User, error) {
+	query := `UPDATE users 
+	SET first_name = :first_name, 
+	last_name = :last_name, 
+	email = :email, 
+	password = :password, 
+	is_shop_owner = :is_shop_owner 
+	WHERE id = :id`
+
+	_, err := r.db.NamedExec(query, user)
+	if err != nil {
+		log.Printf("Failed to update user: %v", err)
+		return nil, err
+	}
+
+	return &user, nil
+}
